@@ -21,8 +21,6 @@ x86/
 *.idb
 *.ilk
 *.exe
-*.dll
-*.lib
 *.exp
 
 # CMake
