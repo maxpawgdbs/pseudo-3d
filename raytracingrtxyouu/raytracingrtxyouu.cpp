@@ -91,12 +91,12 @@ int main() {
 	long long fps_for_screen = 0;
 	Coords Camera = { 0.0, 0.0 };
 	int mapa_width = rand() % 50 + 10;
-	int mapa_height = rand() % 50 + 1 - 0;
+	int mapa_height = rand() % 50 + 10;
 	std::vector<std::string> mapa;// = {
 	for (int y = 0; y < mapa_height; y++) {
 		std::string s = "";
 		for (int x = 0; x < mapa_width; x++) {
-			if (rand() % 9) {
+			if (rand() % 5) {
 				s.push_back('O');
 			}
 			else {
