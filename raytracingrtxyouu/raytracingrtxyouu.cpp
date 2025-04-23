@@ -48,7 +48,7 @@ int BinSearch(const std::vector<WallFunction>& funcs, double x) {
 		[](const WallFunction& f, double val) {
 			return f.main < val;
 		});
-
+	
 	if (it == funcs.begin()) return 0;
 	if (it == funcs.end()) return funcs.size() - 1;
 	return static_cast<int>(std::distance(funcs.begin(), it)) - 1;
@@ -105,15 +105,6 @@ int main() {
 		}
 		mapa.push_back(s);
 	}
-  /*"#######",
-  "##O#O##",
-  "#OOOOO#",
-  "#OO#OO#",
-  "##OOO##",
-  "##OOO##",
-  "#######",
-	};*/
-
 	std::vector<WallFunction> FuncWalls;
 	std::vector<WallFunction> FuncWallsX;
 	std::vector<WallFunction> FuncWallsY;
@@ -200,9 +191,9 @@ int main() {
 
 		time = time_now;
 		int n = width;
-		glBegin(GL_LINE_STRIP);
+
 		for (int i = 0; i < n; i++) {
-			//glBegin(GL_LINE_STRIP);
+			glBegin(GL_LINE_STRIP);
 			double r = (rotate + i * (1 / (n / 120.0))) / 180.0 * M_PI;
 			double m = 1e10;
 
@@ -286,8 +277,9 @@ int main() {
 			glColor3f(dk * 2.5, dk * 2.5, dk*2.5);
 			glVertex2f((i - n / 2.0) / (width / 2.0), -dk);
 			glVertex2f((i - n / 2.0) / (width / 2.0), dk);
+			glEnd();
 		}
-		glEnd();
+
 		
 		glEnd();
 		glfwSwapBuffers(window);
