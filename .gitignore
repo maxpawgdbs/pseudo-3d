@@ -1,0 +1,48 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.VC.db
+*.VC.opendb
+*.ipch/
+*.ncb
+*.opensdf
+*.sdf
+*.cache
+*.log
+
+# Build
+Debug/
+Release/
+x64/
+x86/
+*.obj
+*.pdb
+*.idb
+*.ilk
+*.exe
+*.dll
+*.lib
+*.exp
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Others
+*.tmp
+*.bak
+*.old
+*.swp
+*.swo
+*.DS_Store
+Thumbs.db
+
+# Ignore crash dumps
+*.dmp
+
+# Git
+*.orig
+*.rej
