@@ -193,17 +193,19 @@ int main() {
 		int n = width;
 
 		for (int i = 0; i < n; i++) {
-			glBegin(GL_LINE_STRIP);
-			double r = (rotate + i * (1 / (n / 120.0))) / 180.0 * M_PI;
+			double r = (rotate + i * (120.0 / n)) / 180.0 * M_PI;
 			double m = 1e10;
+			double cosr = cos(r);
+			double sinr = sin(r);
+			double tanr = tan(r);
 
 			int l = BinSearch(FuncWallsX, Camera.x);
 			for (int i = 0; i < FuncWallsX.size(); i++) {
 				bool out = false;
 				if (l + i < FuncWallsX.size()) {
 					WallFunction el = FuncWallsX[l + i];
-					if ((el.main - Camera.x) <= 0 && cos(r) <= 0 || (el.main - Camera.x) > 0 && cos(r) > 0) {
-						double y = tan(r) * (el.main - Camera.x) + Camera.y;
+					if ((el.main - Camera.x) <= 0 && cosr <= 0 || (el.main - Camera.x) > 0 && cosr > 0) {
+						double y = tanr * (el.main - Camera.x) + Camera.y;
 						if (y <= std::max(el.a, el.b) && std::min(el.a, el.b) <= y) {
 							double mn = sqrt(pow(y - Camera.y, 2) + pow(el.main - Camera.x, 2));
 							m = std::min(mn, m);
@@ -213,8 +215,8 @@ int main() {
 				} 
 				if (l - i >= 0) {
 					WallFunction el = FuncWallsX[l - i];
-					if ((el.main - Camera.x) <= 0 && cos(r) <= 0 || (el.main - Camera.x) > 0 && cos(r) > 0) {
-						double y = tan(r) * (el.main - Camera.x) + Camera.y;
+					if ((el.main - Camera.x) <= 0 && cosr <= 0 || (el.main - Camera.x) > 0 && cosr > 0) {
+						double y = tanr * (el.main - Camera.x) + Camera.y;
 						if (y <= std::max(el.a, el.b) && std::min(el.a, el.b) <= y) {
 							double mn = sqrt(pow(y - Camera.y, 2) + pow(el.main - Camera.x, 2));
 							m = std::min(mn, m);
@@ -226,12 +228,12 @@ int main() {
 			}
 
 			l = BinSearch(FuncWallsY, Camera.y);
-			for (int i = 0; i < FuncWallsX.size(); i++) {
+			for (int i = 0; i < FuncWallsY.size(); i++) {
 				bool out = false;
 				if (l + i < FuncWallsY.size()) {
 					WallFunction el = FuncWallsY[l + i];
-					if ((el.main - Camera.y) <= 0 && sin(r) <= 0 || (el.main - Camera.y) > 0 && sin(r) > 0) {
-						double x = (el.main - Camera.y) / tan(r) + Camera.x;
+					if ((el.main - Camera.y) <= 0 && sinr <= 0 || (el.main - Camera.y) > 0 && sinr > 0) {
+						double x = (el.main - Camera.y) / tanr + Camera.x;
 						if (x <= std::max(el.a, el.b) && std::min(el.a, el.b) <= x) {
 							double mn = sqrt(pow(x - Camera.x, 2) + pow(el.main - Camera.y, 2));
 							m = std::min(mn, m);
@@ -241,8 +243,8 @@ int main() {
 				}
 				if (l - i >= 0) {
 					WallFunction el = FuncWallsY[l - i];
-					if ((el.main - Camera.y) <= 0 && sin(r) <= 0 || (el.main - Camera.y) > 0 && sin(r) > 0) {
-						double x = (el.main - Camera.y) / tan(r) + Camera.x;
+					if ((el.main - Camera.y) <= 0 && sinr <= 0 || (el.main - Camera.y) > 0 && sinr > 0) {
+						double x = (el.main - Camera.y) / tanr + Camera.x;
 						if (x <= std::max(el.a, el.b) && std::min(el.a, el.b) <= x) {
 							double mn = sqrt(pow(x - Camera.x, 2) + pow(el.main - Camera.y, 2));
 							m = std::min(mn, m);
@@ -273,7 +275,9 @@ int main() {
 				}
 			}*/
 			if (m == 1e10) continue;
+			//m *= cos((i * (120.0 / n) - 60.0) * M_PI / 180.0);
 			double dk = 1.0 / m * k / 2.0;
+			glBegin(GL_LINE_STRIP);
 			glColor3f(dk * 2.5, dk * 2.5, dk*2.5);
 			glVertex2f((i - n / 2.0) / (width / 2.0), -dk);
 			glVertex2f((i - n / 2.0) / (width / 2.0), dk);
@@ -281,7 +285,6 @@ int main() {
 		}
 
 		
-		glEnd();
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
