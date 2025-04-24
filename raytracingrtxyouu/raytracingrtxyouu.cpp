@@ -48,10 +48,13 @@ int BinSearch(const std::vector<WallFunction>& funcs, double x) {
 		[](const WallFunction& f, double val) {
 			return f.main < val;
 		});
-	
+
 	if (it == funcs.begin()) return 0;
 	if (it == funcs.end()) return funcs.size() - 1;
 	return static_cast<int>(std::distance(funcs.begin(), it)) - 1;
+}
+double VectorProizvedenie(Coords a, Coords b, Coords c) {
+	return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
 }
 
 int main() {
@@ -117,14 +120,14 @@ int main() {
 					 mapa[0].size() / 2.0 - x,
 					 mapa[0].size() / 2.0 - x - 1,
 					}
-					);
+				);
 				FuncWallsY.push_back(
 					WallFunction{
 					 'y', mapa.size() / 2.0 - y,
 					 mapa[0].size() / 2.0 - x,
 					 mapa[0].size() / 2.0 - x - 1,
 					}
-					);
+				);
 			}
 		}
 	}
@@ -138,14 +141,14 @@ int main() {
 					 mapa.size() / 2.0 - y,
 					 mapa.size() / 2.0 - y - 1,
 					}
-					);
+				);
 				FuncWallsX.push_back(
 					WallFunction{
 					 'x', mapa[0].size() / 2.0 - x,
 					 mapa.size() / 2.0 - y,
 					 mapa.size() / 2.0 - y - 1,
 					}
-					);
+				);
 			}
 		}
 	}
@@ -164,13 +167,13 @@ int main() {
 			std::chrono::system_clock::now().time_since_epoch()
 		).count();
 		if (time_now - time_fps < 1000) fps++;
-		else { 
-			time_fps = time_now; 
-			std::cout << "fps: " << fps << '\n'; 
-			fps_for_screen = fps; 
+		else {
+			time_fps = time_now;
+			std::cout << "fps: " << fps << '\n';
+			fps_for_screen = fps;
 			fps = 0;
 		}
-
+		Coords OldCamera = Camera;
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			Camera.y += (time_now - time) / 1000.0 * 3 * sin((rotate + 60.0) / 180.0 * M_PI);
 			Camera.x += (time_now - time) / 1000.0 * 3 * cos((rotate + 60.0) / 180.0 * M_PI);
@@ -188,6 +191,39 @@ int main() {
 			Camera.x -= (time_now - time) / 1000.0 * 3 * cos((rotate + 60.0 - 90.0) / 180.0 * M_PI);
 		}
 		glfwSetCursorPosCallback(window, mouse_callback);
+
+		if (OldCamera.x != Camera.x) {
+			for (auto el : FuncWallsX) {
+				Coords M1 = OldCamera;
+				Coords M2 = Camera;
+				Coords P1 = { el.main, el.a };
+				Coords P2 = { el.main, el.b };
+				double d1 = VectorProizvedenie(M1, M2, P1);
+				double d2 = VectorProizvedenie(M1, M2, P2);
+				double d3 = VectorProizvedenie(M1, P1, P2);
+				double d4 = VectorProizvedenie(M2, P1, P2);
+				if (d1 * d2 < 0 && d3 * d4 < 0) {
+					Camera.x = OldCamera.x;
+					break;
+				}
+			}
+		}
+		if (OldCamera.y != Camera.y) {
+			for (auto el : FuncWallsY) {
+				Coords M1 = OldCamera;
+				Coords M2 = Camera;
+				Coords P1 = { el.a, el.main };
+				Coords P2 = { el.b, el.main };
+				double d1 = VectorProizvedenie(M1, M2, P1);
+				double d2 = VectorProizvedenie(M1, M2, P2);
+				double d3 = VectorProizvedenie(M1, P1, P2);
+				double d4 = VectorProizvedenie(M2, P1, P2);
+				if (d1 * d2 < 0 && d3 * d4 < 0) {
+					Camera.y = OldCamera.y;
+					break;
+				}
+			}
+		}
 
 		time = time_now;
 		int n = width;
@@ -212,7 +248,7 @@ int main() {
 							out = true;
 						}
 					}
-				} 
+				}
 				if (l - i >= 0) {
 					WallFunction el = FuncWallsX[l - i];
 					if ((el.main - Camera.x) <= 0 && cosr <= 0 || (el.main - Camera.x) > 0 && cosr > 0) {
@@ -278,13 +314,13 @@ int main() {
 			//m *= cos((i * (120.0 / n) - 60.0) * M_PI / 180.0);
 			double dk = 1.0 / m * k / 2.0;
 			glBegin(GL_LINE_STRIP);
-			glColor3f(dk * 2.5, dk * 2.5, dk*2.5);
+			glColor3f(dk * 2.5, dk * 2.5, dk * 2.5);
 			glVertex2f((i - n / 2.0) / (width / 2.0), -dk);
 			glVertex2f((i - n / 2.0) / (width / 2.0), dk);
 			glEnd();
 		}
 
-		
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
