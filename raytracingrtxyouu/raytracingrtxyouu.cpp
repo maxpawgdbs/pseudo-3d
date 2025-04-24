@@ -90,8 +90,11 @@ int main() {
 	long long time_fps = std::chrono::duration_cast<std::chrono::milliseconds>(
 		std::chrono::system_clock::now().time_since_epoch()
 	).count();
+	long long time_count_fps = std::chrono::duration_cast<std::chrono::milliseconds>(
+		std::chrono::system_clock::now().time_since_epoch()
+	).count();
+	int STABLE_FPS = 80;
 	long long fps = 0;
-	long long fps_for_screen = 0;
 	Coords Camera = { 0.0, 0.0 };
 	int mapa_width = rand() % 50 + 10;
 	int mapa_height = rand() % 50 + 10;
@@ -109,8 +112,8 @@ int main() {
 		mapa.push_back(s);
 	}
 	std::vector<WallFunction> FuncWalls;
-	std::vector<WallFunction> FuncWallsX;
-	std::vector<WallFunction> FuncWallsY;
+	std::vector<WallFunction> FuncWallsX = { {'x', mapa[0].size() / 2.0, mapa.size() / 2.0, mapa.size() / -2.0}, {'x', mapa[0].size() / -2.0, mapa.size() / 2.0, mapa.size() / -2.0} };
+	std::vector<WallFunction> FuncWallsY = { {'y', mapa.size() / 2.0, mapa[0].size() / 2.0, mapa[0].size() / -2.0},  {'y', mapa.size() / -2.0, mapa[0].size() / 2.0, mapa[0].size() / -2.0}};
 	for (int y = 1; y < mapa.size(); y++) {
 		for (int x = 0; x < mapa[0].size(); x++) {
 			if (mapa[y][x] != mapa[y - 1][x]) {
@@ -166,11 +169,11 @@ int main() {
 		long long time_now = std::chrono::duration_cast<std::chrono::milliseconds>(
 			std::chrono::system_clock::now().time_since_epoch()
 		).count();
-		if (time_now - time_fps < 1000) fps++;
+		if (time_now - time_count_fps < 1000) fps++;
 		else {
-			time_fps = time_now;
+			time_count_fps = time_now;
 			std::cout << "fps: " << fps << '\n';
-			fps_for_screen = fps;
+			time_count_fps = time_now;
 			fps = 0;
 		}
 		Coords OldCamera = Camera;
@@ -311,7 +314,7 @@ int main() {
 				}
 			}*/
 			if (m == 1e10) continue;
-			//m *= cos((i * (120.0 / n) - 60.0) * M_PI / 180.0);
+			// m *= cos((i * (120.0 / n) - 60.0) * M_PI / 180.0);
 			double dk = 1.0 / m * k / 2.0;
 			glBegin(GL_LINE_STRIP);
 			glColor3f(dk * 2.5, dk * 2.5, dk * 2.5);
@@ -319,6 +322,10 @@ int main() {
 			glVertex2f((i - n / 2.0) / (width / 2.0), dk);
 			glEnd();
 		}
+		while (time_fps - time < 1000 / STABLE_FPS) time_fps = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+		).count();
+		time_fps = time_now;
 
 
 		glfwSwapBuffers(window);
