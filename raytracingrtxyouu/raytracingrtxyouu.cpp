@@ -19,6 +19,10 @@ struct Coords {
 	double x;
 	double y;
 };
+struct Segment {
+	Coords a;
+	Coords b;
+};
 void error_callback(int error, const char* description) {
 	std::cerr << "Error: " << description << std::endl;
 }
@@ -111,9 +115,10 @@ int main() {
 		}
 		mapa.push_back(s);
 	}
+	std::vector<Segment> WallSegments;
 	std::vector<WallFunction> FuncWalls;
 	std::vector<WallFunction> FuncWallsX = { {'x', mapa[0].size() / 2.0, mapa.size() / 2.0, mapa.size() / -2.0}, {'x', mapa[0].size() / -2.0, mapa.size() / 2.0, mapa.size() / -2.0} };
-	std::vector<WallFunction> FuncWallsY = { {'y', mapa.size() / 2.0, mapa[0].size() / 2.0, mapa[0].size() / -2.0},  {'y', mapa.size() / -2.0, mapa[0].size() / 2.0, mapa[0].size() / -2.0}};
+	std::vector<WallFunction> FuncWallsY = { {'y', mapa.size() / 2.0, mapa[0].size() / 2.0, mapa[0].size() / -2.0},  {'y', mapa.size() / -2.0, mapa[0].size() / 2.0, mapa[0].size() / -2.0} };
 	for (int y = 1; y < mapa.size(); y++) {
 		for (int x = 0; x < mapa[0].size(); x++) {
 			if (mapa[y][x] != mapa[y - 1][x]) {
@@ -131,6 +136,10 @@ int main() {
 					 mapa[0].size() / 2.0 - x - 1,
 					}
 				);
+				WallSegments.push_back({
+					{ mapa[0].size() / 2.0 - x , mapa.size() / 2.0 - y },
+					{ mapa[0].size() / 2.0 - x - 1 , mapa.size() / 2.0 - y},
+					});
 			}
 		}
 	}
@@ -152,12 +161,15 @@ int main() {
 					 mapa.size() / 2.0 - y - 1,
 					}
 				);
+				WallSegments.push_back({
+					{ mapa[0].size() / 2.0 - x , mapa.size() / 2.0 - y },
+					{ mapa[0].size() / 2.0 - x, mapa.size() / 2.0 - y - 1},
+					});
 			}
 		}
 	}
 	std::sort(FuncWallsX.begin(), FuncWallsX.end(), [](WallFunction a, WallFunction b) {return a.main < b.main;});
 	std::sort(FuncWallsY.begin(), FuncWallsY.end(), [](WallFunction a, WallFunction b) {return a.main < b.main;});
-
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -238,7 +250,7 @@ int main() {
 			double sinr = sin(r);
 			double tanr = tan(r);
 
-			int l = BinSearch(FuncWallsX, Camera.x);
+			/*int l = BinSearch(FuncWallsX, Camera.x);
 			for (int i = 0; i < FuncWallsX.size(); i++) {
 				bool out = false;
 				if (l + i < FuncWallsX.size()) {
@@ -292,7 +304,9 @@ int main() {
 					}
 				}
 				if (out) break;
-			}
+			}*/
+			1;
+
 			/*for (WallFunction el : FuncWalls) {
 				if (el.type == 'y') {
 					if ((el.main - Camera.y) <= 0 && sin(r) <= 0 || (el.main - Camera.y) > 0 && sin(r) > 0) {
@@ -313,19 +327,45 @@ int main() {
 					}
 				}
 			}*/
+
+
+			for (auto el : WallSegments) {
+				bool d1 = tanr * (el.a.x - Camera.x) + Camera.y > el.a.y;
+				bool d2 = tanr * (el.b.x - Camera.x) + Camera.y > el.b.y;
+				if (d1 + d2 == 1) {
+					double elk;
+					if (el.b.x != el.a.x) {
+						elk = (el.b.y - el.a.y) / (el.b.x - el.a.x);
+						double elb = el.a.y - el.a.x * elk;
+						double finalx = (elb - (Camera.y - tanr * Camera.x)) / (tanr - elk);
+						if (finalx - Camera.x <= 0 && cosr <= 0 || finalx - Camera.x > 0 && cosr > 0) {
+							m = std::min(m, sqrt(pow(elk * finalx + elb - Camera.y, 2) + pow(Camera.x - finalx, 2)));
+						}
+					}
+					else {
+						double finalx = el.a.x;
+						if (finalx - Camera.x <= 0 && cosr <= 0 || finalx - Camera.x > 0 && cosr > 0) {
+							double finaly = tanr * finalx + (Camera.y - tanr * Camera.x);
+							if (finaly <= std::max(el.a.y, el.b.y) && finaly >= std::min(el.a.y, el.b.y)) {
+								m = std::min(m, sqrt(pow(Camera.x - finalx, 2) + pow(Camera.y - finaly, 2)));
+							}
+						}
+					}
+				}
+			}
 			if (m == 1e10) continue;
 			// m *= cos((i * (120.0 / n) - 60.0) * M_PI / 180.0);
 			double dk = 1.0 / m * k / 2.0;
 			glBegin(GL_LINE_STRIP);
-			glColor3f(dk * 2.5, dk * 2.5, dk * 2.5);
+			glColor3f(dk, dk, dk);
 			glVertex2f((i - n / 2.0) / (width / 2.0), -dk);
 			glVertex2f((i - n / 2.0) / (width / 2.0), dk);
 			glEnd();
 		}
-		while (time_fps - time < 1000 / STABLE_FPS) time_fps = std::chrono::duration_cast<std::chrono::milliseconds>(
+		/*while (time_fps - time < 1000 / STABLE_FPS) time_fps = std::chrono::duration_cast<std::chrono::milliseconds>(
 			std::chrono::system_clock::now().time_since_epoch()
 		).count();
-		time_fps = time_now;
+		time_fps = time_now;*/
 
 
 		glfwSwapBuffers(window);
