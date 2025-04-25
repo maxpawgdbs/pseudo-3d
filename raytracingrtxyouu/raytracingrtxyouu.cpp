@@ -7,14 +7,10 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <map>
 
 # define M_PI           3.14159265358979323846
-struct WallFunction {
-	char type;
-	double main;
-	double a;
-	double b;
-};
+
 struct Coords {
 	double x;
 	double y;
@@ -22,6 +18,7 @@ struct Coords {
 struct Segment {
 	Coords a;
 	Coords b;
+	double dx, dy;
 };
 void error_callback(int error, const char* description) {
 	std::cerr << "Error: " << description << std::endl;
@@ -30,6 +27,7 @@ void error_callback(int error, const char* description) {
 double rotate = 0.0;
 double last_mouse_x = 0.0;
 bool first_mouse = true;
+
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	static double sensitivity = 0.08;
 
@@ -45,17 +43,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 
 	if (rotate > 360.0) rotate -= 360.0;
 	if (rotate < 0.0) rotate += 360.0;
-}
-
-int BinSearch(const std::vector<WallFunction>& funcs, double x) {
-	auto it = std::lower_bound(funcs.begin(), funcs.end(), x,
-		[](const WallFunction& f, double val) {
-			return f.main < val;
-		});
-
-	if (it == funcs.begin()) return 0;
-	if (it == funcs.end()) return funcs.size() - 1;
-	return static_cast<int>(std::distance(funcs.begin(), it)) - 1;
 }
 double VectorProizvedenie(Coords a, Coords b, Coords c) {
 	return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
@@ -116,26 +103,9 @@ int main() {
 		mapa.push_back(s);
 	}
 	std::vector<Segment> WallSegments;
-	std::vector<WallFunction> FuncWalls;
-	std::vector<WallFunction> FuncWallsX = { {'x', mapa[0].size() / 2.0, mapa.size() / 2.0, mapa.size() / -2.0}, {'x', mapa[0].size() / -2.0, mapa.size() / 2.0, mapa.size() / -2.0} };
-	std::vector<WallFunction> FuncWallsY = { {'y', mapa.size() / 2.0, mapa[0].size() / 2.0, mapa[0].size() / -2.0},  {'y', mapa.size() / -2.0, mapa[0].size() / 2.0, mapa[0].size() / -2.0} };
 	for (int y = 1; y < mapa.size(); y++) {
 		for (int x = 0; x < mapa[0].size(); x++) {
 			if (mapa[y][x] != mapa[y - 1][x]) {
-				FuncWalls.push_back(
-					WallFunction{
-					 'y', mapa.size() / 2.0 - y,
-					 mapa[0].size() / 2.0 - x,
-					 mapa[0].size() / 2.0 - x - 1,
-					}
-				);
-				FuncWallsY.push_back(
-					WallFunction{
-					 'y', mapa.size() / 2.0 - y,
-					 mapa[0].size() / 2.0 - x,
-					 mapa[0].size() / 2.0 - x - 1,
-					}
-				);
 				WallSegments.push_back({
 					{ mapa[0].size() / 2.0 - x , mapa.size() / 2.0 - y },
 					{ mapa[0].size() / 2.0 - x - 1 , mapa.size() / 2.0 - y},
@@ -147,20 +117,6 @@ int main() {
 	for (int x = 1; x < mapa[0].size(); x++) {
 		for (int y = 0; y < mapa.size(); y++) {
 			if (mapa[y][x] != mapa[y][x - 1]) {
-				FuncWalls.push_back(
-					WallFunction{
-					 'x', mapa[0].size() / 2.0 - x,
-					 mapa.size() / 2.0 - y,
-					 mapa.size() / 2.0 - y - 1,
-					}
-				);
-				FuncWallsX.push_back(
-					WallFunction{
-					 'x', mapa[0].size() / 2.0 - x,
-					 mapa.size() / 2.0 - y,
-					 mapa.size() / 2.0 - y - 1,
-					}
-				);
 				WallSegments.push_back({
 					{ mapa[0].size() / 2.0 - x , mapa.size() / 2.0 - y },
 					{ mapa[0].size() / 2.0 - x, mapa.size() / 2.0 - y - 1},
@@ -168,9 +124,6 @@ int main() {
 			}
 		}
 	}
-	std::sort(FuncWallsX.begin(), FuncWallsX.end(), [](WallFunction a, WallFunction b) {return a.main < b.main;});
-	std::sort(FuncWallsY.begin(), FuncWallsY.end(), [](WallFunction a, WallFunction b) {return a.main < b.main;});
-
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	while (!glfwWindowShouldClose(window)) {
@@ -208,11 +161,11 @@ int main() {
 		glfwSetCursorPosCallback(window, mouse_callback);
 
 		if (OldCamera.x != Camera.x) {
-			for (auto el : FuncWallsX) {
+			for (auto el : WallSegments) {
 				Coords M1 = OldCamera;
 				Coords M2 = Camera;
-				Coords P1 = { el.main, el.a };
-				Coords P2 = { el.main, el.b };
+				Coords P1 = el.a;
+				Coords P2 = el.b;
 				double d1 = VectorProizvedenie(M1, M2, P1);
 				double d2 = VectorProizvedenie(M1, M2, P2);
 				double d3 = VectorProizvedenie(M1, P1, P2);
@@ -224,11 +177,11 @@ int main() {
 			}
 		}
 		if (OldCamera.y != Camera.y) {
-			for (auto el : FuncWallsY) {
+			for (auto el : WallSegments) {
 				Coords M1 = OldCamera;
 				Coords M2 = Camera;
-				Coords P1 = { el.a, el.main };
-				Coords P2 = { el.b, el.main };
+				Coords P1 = el.a;
+				Coords P2 = el.b;
 				double d1 = VectorProizvedenie(M1, M2, P1);
 				double d2 = VectorProizvedenie(M1, M2, P2);
 				double d3 = VectorProizvedenie(M1, P1, P2);
@@ -249,85 +202,6 @@ int main() {
 			double cosr = cos(r);
 			double sinr = sin(r);
 			double tanr = tan(r);
-
-			/*int l = BinSearch(FuncWallsX, Camera.x);
-			for (int i = 0; i < FuncWallsX.size(); i++) {
-				bool out = false;
-				if (l + i < FuncWallsX.size()) {
-					WallFunction el = FuncWallsX[l + i];
-					if ((el.main - Camera.x) <= 0 && cosr <= 0 || (el.main - Camera.x) > 0 && cosr > 0) {
-						double y = tanr * (el.main - Camera.x) + Camera.y;
-						if (y <= std::max(el.a, el.b) && std::min(el.a, el.b) <= y) {
-							double mn = sqrt(pow(y - Camera.y, 2) + pow(el.main - Camera.x, 2));
-							m = std::min(mn, m);
-							out = true;
-						}
-					}
-				}
-				if (l - i >= 0) {
-					WallFunction el = FuncWallsX[l - i];
-					if ((el.main - Camera.x) <= 0 && cosr <= 0 || (el.main - Camera.x) > 0 && cosr > 0) {
-						double y = tanr * (el.main - Camera.x) + Camera.y;
-						if (y <= std::max(el.a, el.b) && std::min(el.a, el.b) <= y) {
-							double mn = sqrt(pow(y - Camera.y, 2) + pow(el.main - Camera.x, 2));
-							m = std::min(mn, m);
-							out = true;
-						}
-					}
-				}
-				if (out) break;
-			}
-
-			l = BinSearch(FuncWallsY, Camera.y);
-			for (int i = 0; i < FuncWallsY.size(); i++) {
-				bool out = false;
-				if (l + i < FuncWallsY.size()) {
-					WallFunction el = FuncWallsY[l + i];
-					if ((el.main - Camera.y) <= 0 && sinr <= 0 || (el.main - Camera.y) > 0 && sinr > 0) {
-						double x = (el.main - Camera.y) / tanr + Camera.x;
-						if (x <= std::max(el.a, el.b) && std::min(el.a, el.b) <= x) {
-							double mn = sqrt(pow(x - Camera.x, 2) + pow(el.main - Camera.y, 2));
-							m = std::min(mn, m);
-							out = true;
-						}
-					}
-				}
-				if (l - i >= 0) {
-					WallFunction el = FuncWallsY[l - i];
-					if ((el.main - Camera.y) <= 0 && sinr <= 0 || (el.main - Camera.y) > 0 && sinr > 0) {
-						double x = (el.main - Camera.y) / tanr + Camera.x;
-						if (x <= std::max(el.a, el.b) && std::min(el.a, el.b) <= x) {
-							double mn = sqrt(pow(x - Camera.x, 2) + pow(el.main - Camera.y, 2));
-							m = std::min(mn, m);
-							out = true;
-						}
-					}
-				}
-				if (out) break;
-			}*/
-			1;
-
-			/*for (WallFunction el : FuncWalls) {
-				if (el.type == 'y') {
-					if ((el.main - Camera.y) <= 0 && sin(r) <= 0 || (el.main - Camera.y) > 0 && sin(r) > 0) {
-						double x = (el.main - Camera.y) / tan(r) + Camera.x;
-						if (x <= std::max(el.a, el.b) && std::min(el.a, el.b) <= x) {
-							double mn = sqrt(pow(x - Camera.x, 2) + pow(el.main - Camera.y, 2));
-							m = std::min(mn, m);
-						}
-					}
-				}
-				else if (el.type == 'x') {
-					if ((el.main - Camera.x) <= 0 && cos(r) <= 0 || (el.main - Camera.x) > 0 && cos(r) > 0) {
-						double y = tan(r) * (el.main - Camera.x) + Camera.y;
-						if (y <= std::max(el.a, el.b) && std::min(el.a, el.b) <= y) {
-							double mn = sqrt(pow(y - Camera.y, 2) + pow(el.main - Camera.x, 2));
-							m = std::min(mn, m);
-						}
-					}
-				}
-			}*/
-
 
 			for (auto el : WallSegments) {
 				bool d1 = tanr * (el.a.x - Camera.x) + Camera.y > el.a.y;
@@ -354,7 +228,7 @@ int main() {
 				}
 			}
 			if (m == 1e10) continue;
-			// m *= cos((i * (120.0 / n) - 60.0) * M_PI / 180.0);
+			//m *= cos((i * (120.0 / n) - 60.0) * M_PI / 180.0);
 			double dk = 1.0 / m * k / 2.0;
 			glBegin(GL_LINE_STRIP);
 			glColor3f(dk, dk, dk);
