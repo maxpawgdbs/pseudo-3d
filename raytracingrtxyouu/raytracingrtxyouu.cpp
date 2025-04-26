@@ -18,7 +18,7 @@ struct Coords {
 struct Segment {
 	Coords a;
 	Coords b;
-	double dx, dy;
+	double fkx, fb;
 };
 void error_callback(int error, const char* description) {
 	std::cerr << "Error: " << description << std::endl;
@@ -89,40 +89,58 @@ int main() {
 	Coords Camera = { 0.0, 0.0 };
 	int mapa_width = rand() % 50 + 10;
 	int mapa_height = rand() % 50 + 10;
-	std::vector<std::string> mapa;// = {
-	for (int y = 0; y < mapa_height; y++) {
-		std::string s = "";
-		for (int x = 0; x < mapa_width; x++) {
-			if (rand() % 5) {
-				s.push_back('O');
-			}
-			else {
-				s.push_back('#');
-			}
-		}
-		mapa.push_back(s);
-	}
+	//std::vector<std::string> mapa;// = {
+	//for (int y = 0; y < mapa_height; y++) {
+	//	std::string s = "";
+	//	for (int x = 0; x < mapa_width; x++) {
+	//		if (rand() % 5) {
+	//			s.push_back('O');
+	//		}
+	//		else {
+	//			s.push_back('#');
+	//		}
+	//	}
+	//	mapa.push_back(s);
+	//}
 	std::vector<Segment> WallSegments;
-	for (int y = 1; y < mapa.size(); y++) {
-		for (int x = 0; x < mapa[0].size(); x++) {
-			if (mapa[y][x] != mapa[y - 1][x]) {
-				WallSegments.push_back({
-					{ mapa[0].size() / 2.0 - x , mapa.size() / 2.0 - y },
-					{ mapa[0].size() / 2.0 - x - 1 , mapa.size() / 2.0 - y},
-					});
-			}
-		}
-	}
+	//for (int y = 1; y < mapa_height; y++) {
+	//	for (int x = 0; x < mapa_width; x++) {
+	//		if (mapa[y][x] != mapa[y - 1][x]) {
+	//			WallSegments.push_back({
+	//				{ mapa_width / 2.0 - x , mapa_height / 2.0 - y },
+	//				{ mapa_width / 2.0 - x - 1 , mapa_height / 2.0 - y},
+	//				0, mapa_height / 2.0 - y,
+	//				});
+	//		}
+	//	}
+	//}
 
-	for (int x = 1; x < mapa[0].size(); x++) {
-		for (int y = 0; y < mapa.size(); y++) {
-			if (mapa[y][x] != mapa[y][x - 1]) {
-				WallSegments.push_back({
-					{ mapa[0].size() / 2.0 - x , mapa.size() / 2.0 - y },
-					{ mapa[0].size() / 2.0 - x, mapa.size() / 2.0 - y - 1},
-					});
-			}
+	//for (int x = 1; x < mapa[0].size(); x++) {
+	//	for (int y = 0; y < mapa.size(); y++) {
+	//		if (mapa[y][x] != mapa[y][x - 1]) {
+	//			WallSegments.push_back({
+	//				{ mapa_width / 2.0 - x , mapa.size() / 2.0 - y },
+	//				{ mapa_width / 2.0 - x, mapa.size() / 2.0 - y - 1},
+	//				999.0, 0,
+	//				});
+	//		}
+	//	}
+	//}
+
+	for (int i = 0; i < 30; i++) {
+		int x1 = mapa_width / 2.0 - rand() % mapa_width;
+		int y1 = mapa_height / 2.0 - rand() % mapa_height;
+		int x2 = mapa_width / 2.0 - rand() % mapa_width;
+		int y2 = mapa_height / 2.0 - rand() % mapa_height;
+		while (x1 == x2 || y1 == y2) {
+			x1 = mapa_width / 2.0 - rand() % mapa_width;
+			y1 = mapa_height / 2.0 - rand() % mapa_height;
 		}
+		double dx1 = x1 * 1.0f;
+		double dy1 = y1 * 1.0f;
+		double dx2 = x2 * 1.0f;
+		double dy2 = y2 * 1.0f;
+		WallSegments.push_back({ { dx1, dx2 }, { dy1, dy2 }, (dy1 - dy2) / (dx1 - dx2), dy1 - dx1 * (dy1 - dy2) / (dx1 - dx2) });
 	}
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -207,10 +225,11 @@ int main() {
 				bool d1 = tanr * (el.a.x - Camera.x) + Camera.y > el.a.y;
 				bool d2 = tanr * (el.b.x - Camera.x) + Camera.y > el.b.y;
 				if (d1 + d2 == 1) {
-					double elk;
 					if (el.b.x != el.a.x) {
-						elk = (el.b.y - el.a.y) / (el.b.x - el.a.x);
+						double elk = (el.b.y - el.a.y) / (el.b.x - el.a.x);
 						double elb = el.a.y - el.a.x * elk;
+						/*double elk = el.fkx;
+						double elb = el.fb;*/
 						double finalx = (elb - (Camera.y - tanr * Camera.x)) / (tanr - elk);
 						if (finalx - Camera.x <= 0 && cosr <= 0 || finalx - Camera.x > 0 && cosr > 0) {
 							m = std::min(m, sqrt(pow(elk * finalx + elb - Camera.y, 2) + pow(Camera.x - finalx, 2)));
@@ -225,6 +244,12 @@ int main() {
 							}
 						}
 					}
+					/*double elk = el.fkx;
+					double elb = el.fb;
+					double finalx = (elb - (Camera.y - tanr * Camera.x)) / (tanr - elk);
+					if (finalx - Camera.x <= 0 && cosr <= 0 || finalx - Camera.x > 0 && cosr > 0) {
+						m = std::min(m, sqrt(pow(elk * finalx + elb - Camera.y, 2) + pow(Camera.x - finalx, 2)));
+					}*/
 				}
 			}
 			if (m == 1e10) continue;
