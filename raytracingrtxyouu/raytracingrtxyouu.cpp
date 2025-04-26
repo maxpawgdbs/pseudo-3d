@@ -127,20 +127,32 @@ int main() {
 	//	}
 	//}
 
-	for (int i = 0; i < 30; i++) {
-		int x1 = mapa_width / 2.0 - rand() % mapa_width;
-		int y1 = mapa_height / 2.0 - rand() % mapa_height;
-		int x2 = mapa_width / 2.0 - rand() % mapa_width;
-		int y2 = mapa_height / 2.0 - rand() % mapa_height;
+	/*for (int i = 0; i < 100; i++) {
+		int x1 = mapa_width / 2.0 - rand() % mapa_width / 2.0;
+		int y1 = mapa_height / 2.0 - rand() % mapa_height / 2.0;
+		int x2 = mapa_width / 2.0 - rand() % mapa_width / 2.0;
+		int y2 = mapa_height / 2.0 - rand() % mapa_height / 2.0;
+
 		while (x1 == x2 || y1 == y2) {
-			x1 = mapa_width / 2.0 - rand() % mapa_width;
-			y1 = mapa_height / 2.0 - rand() % mapa_height;
+			x1 = mapa_width / 2.0 - rand() % mapa_width / 2.0;
+			y1 = mapa_height / 2.0 - rand() % mapa_height / 2.0;
 		}
 		double dx1 = x1 * 1.0f;
 		double dy1 = y1 * 1.0f;
 		double dx2 = x2 * 1.0f;
 		double dy2 = y2 * 1.0f;
 		WallSegments.push_back({ { dx1, dx2 }, { dy1, dy2 }, (dy1 - dy2) / (dx1 - dx2), dy1 - dx1 * (dy1 - dy2) / (dx1 - dx2) });
+	}*/
+	double x = 3;
+	double y = 3;
+	double nangles = 2000;
+	double a = 2;
+	for (int i = 1; i <= nangles; i++) {
+		WallSegments.push_back({
+			{x, y}, {x + a * cos(i * (nangles - 2) * 180 / nangles), y + a * sin(i * (nangles - 2) * 180 / nangles) },
+			});
+		x += a * cos(i * (nangles - 2) * 180 / nangles);
+		y += a * sin(i * (nangles - 2) * 180 / nangles);
 	}
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
