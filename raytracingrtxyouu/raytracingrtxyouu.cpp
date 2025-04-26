@@ -87,73 +87,72 @@ int main() {
 	int STABLE_FPS = 80;
 	long long fps = 0;
 	Coords Camera = { 0.0, 0.0 };
-	int mapa_width = rand() % 50 + 10;
-	int mapa_height = rand() % 50 + 10;
-	//std::vector<std::string> mapa;// = {
-	//for (int y = 0; y < mapa_height; y++) {
-	//	std::string s = "";
-	//	for (int x = 0; x < mapa_width; x++) {
-	//		if (rand() % 5) {
-	//			s.push_back('O');
-	//		}
-	//		else {
-	//			s.push_back('#');
-	//		}
-	//	}
-	//	mapa.push_back(s);
-	//}
-	std::vector<Segment> WallSegments;
-	//for (int y = 1; y < mapa_height; y++) {
-	//	for (int x = 0; x < mapa_width; x++) {
-	//		if (mapa[y][x] != mapa[y - 1][x]) {
-	//			WallSegments.push_back({
-	//				{ mapa_width / 2.0 - x , mapa_height / 2.0 - y },
-	//				{ mapa_width / 2.0 - x - 1 , mapa_height / 2.0 - y},
-	//				0, mapa_height / 2.0 - y,
-	//				});
-	//		}
-	//	}
-	//}
-
-	//for (int x = 1; x < mapa[0].size(); x++) {
-	//	for (int y = 0; y < mapa.size(); y++) {
-	//		if (mapa[y][x] != mapa[y][x - 1]) {
-	//			WallSegments.push_back({
-	//				{ mapa_width / 2.0 - x , mapa.size() / 2.0 - y },
-	//				{ mapa_width / 2.0 - x, mapa.size() / 2.0 - y - 1},
-	//				999.0, 0,
-	//				});
-	//		}
-	//	}
-	//}
-
-	/*for (int i = 0; i < 100; i++) {
-		int x1 = mapa_width / 2.0 - rand() % mapa_width / 2.0;
-		int y1 = mapa_height / 2.0 - rand() % mapa_height / 2.0;
-		int x2 = mapa_width / 2.0 - rand() % mapa_width / 2.0;
-		int y2 = mapa_height / 2.0 - rand() % mapa_height / 2.0;
-
-		while (x1 == x2 || y1 == y2) {
-			x1 = mapa_width / 2.0 - rand() % mapa_width / 2.0;
-			y1 = mapa_height / 2.0 - rand() % mapa_height / 2.0;
+	int mapa_width = 10;
+	int mapa_height = 10;
+	std::vector<std::string> mapa;// = {
+	for (int y = 0; y < mapa_height; y++) {
+		std::string s = "";
+		for (int x = 0; x < mapa_width; x++) {
+			if (rand() % 5) {
+				s.push_back('O');
+			}
+			else {
+				s.push_back('#');
+			}
 		}
-		double dx1 = x1 * 1.0f;
-		double dy1 = y1 * 1.0f;
-		double dx2 = x2 * 1.0f;
-		double dy2 = y2 * 1.0f;
-		WallSegments.push_back({ { dx1, dx2 }, { dy1, dy2 }, (dy1 - dy2) / (dx1 - dx2), dy1 - dx1 * (dy1 - dy2) / (dx1 - dx2) });
-	}*/
+		mapa.push_back(s);
+	}
+	std::vector<Segment> WallSegments;
+	for (int y = 1; y < mapa_height; y++) {
+		for (int x = 0; x < mapa_width; x++) {
+			if (mapa[y][x] != mapa[y - 1][x]) {
+				WallSegments.push_back({
+					{ mapa_width / 2.0 - x , mapa_height / 2.0 - y },
+					{ mapa_width / 2.0 - x - 1 , mapa_height / 2.0 - y},
+					0, mapa_height / 2.0 - y,
+					});
+			}
+		}
+	}
+
+	for (int x = 1; x < mapa[0].size(); x++) {
+		for (int y = 0; y < mapa.size(); y++) {
+			if (mapa[y][x] != mapa[y][x - 1]) {
+				WallSegments.push_back({
+					{ mapa_width / 2.0 - x , mapa.size() / 2.0 - y },
+					{ mapa_width / 2.0 - x, mapa.size() / 2.0 - y - 1},
+					999.0, 0,
+					});
+			}
+		}
+	}
+
 	double x = 3;
 	double y = 3;
-	double nangles = 2000;
-	double a = 2;
-	for (int i = 1; i <= nangles; i++) {
+	double nangles = 25;
+	double a = 0.1;
+	for (int i = 0; i < nangles; i++) {
+		double anglepi = 360.0 / nangles * i * M_PI / 180.0;
 		WallSegments.push_back({
-			{x, y}, {x + a * cos(i * (nangles - 2) * 180 / nangles), y + a * sin(i * (nangles - 2) * 180 / nangles) },
+			{x, y}, {x + a * cos(anglepi), y + a * sin(anglepi) },
 			});
-		x += a * cos(i * (nangles - 2) * 180 / nangles);
-		y += a * sin(i * (nangles - 2) * 180 / nangles);
+		x += a * cos(anglepi);
+		y += a * sin(anglepi);
 	}
+
+	x = 3.5;
+	y = 3;
+	nangles = 25;
+	a = 0.1;
+	for (int i = 0; i < nangles; i++) {
+		double anglepi = 360.0 / nangles * i * M_PI / 180.0;
+		WallSegments.push_back({
+			{x, y}, {x + a * cos(anglepi), y + a * sin(anglepi) },
+			});
+		x += a * cos(anglepi);
+		y += a * sin(anglepi);
+	}
+
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	while (!glfwWindowShouldClose(window)) {
@@ -256,12 +255,6 @@ int main() {
 							}
 						}
 					}
-					/*double elk = el.fkx;
-					double elb = el.fb;
-					double finalx = (elb - (Camera.y - tanr * Camera.x)) / (tanr - elk);
-					if (finalx - Camera.x <= 0 && cosr <= 0 || finalx - Camera.x > 0 && cosr > 0) {
-						m = std::min(m, sqrt(pow(elk * finalx + elb - Camera.y, 2) + pow(Camera.x - finalx, 2)));
-					}*/
 				}
 			}
 			if (m == 1e10) continue;
@@ -269,8 +262,8 @@ int main() {
 			double dk = 1.0 / m * k / 2.0;
 			glBegin(GL_LINE_STRIP);
 			glColor3f(dk, dk, dk);
-			glVertex2f((i - n / 2.0) / (width / 2.0), -dk);
-			glVertex2f((i - n / 2.0) / (width / 2.0), dk);
+			glVertex2f((i - n / 2.0) / (n / 2.0), -dk);
+			glVertex2f((i - n / 2.0) / (n / 2.0), dk);
 			glEnd();
 		}
 		/*while (time_fps - time < 1000 / STABLE_FPS) time_fps = std::chrono::duration_cast<std::chrono::milliseconds>(
