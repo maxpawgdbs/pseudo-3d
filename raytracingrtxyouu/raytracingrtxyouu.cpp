@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <map>
 
-# define M_PI           3.14159265358979323846
+#define M_PI 3.14159265358979323846
 
 struct Coords {
 	double x;
@@ -129,7 +129,7 @@ int main() {
 
 	double x = 3;
 	double y = 3;
-	double nangles = 25;
+	double nangles = 500;
 	double a = 0.1;
 	for (int i = 0; i < nangles; i++) {
 		double anglepi = 360.0 / nangles * i * M_PI / 180.0;
@@ -142,8 +142,8 @@ int main() {
 
 	x = 3.5;
 	y = 3;
-	nangles = 25;
-	a = 0.1;
+	nangles = 500;
+	a = 0.05;
 	for (int i = 0; i < nangles; i++) {
 		double anglepi = 360.0 / nangles * i * M_PI / 180.0;
 		WallSegments.push_back({
